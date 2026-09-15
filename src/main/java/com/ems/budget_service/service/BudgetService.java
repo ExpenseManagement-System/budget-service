@@ -96,4 +96,14 @@ public class BudgetService {
         Budget updatedBudget = budgetRepository.save(budget);
         return mapToResponse(updatedBudget);
     }
+
+    @Transactional
+    public void deleteBudget(Long id, Long userId) {
+        Budget budget = budgetRepository.findByIdAndUserId(id, userId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        String.format("Budget with id %d not found for user %d", id, userId)
+                ));
+
+        budgetRepository.delete(budget);
+    }
 }
