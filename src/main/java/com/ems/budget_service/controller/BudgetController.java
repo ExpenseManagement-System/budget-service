@@ -2,6 +2,7 @@ package com.ems.budget_service.controller;
 
 import com.ems.budget_service.model.dto.BudgetResponse;
 import com.ems.budget_service.model.dto.CreateBudgetRequest;
+import com.ems.budget_service.model.dto.UpdateBudgetRequest;
 import com.ems.budget_service.service.BudgetService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -44,5 +45,15 @@ public class BudgetController {
 
         BudgetResponse budget = budgetService.getBudgetById(id, userId);
         return ResponseEntity.ok(budget);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<BudgetResponse> updateBudget(
+            @RequestHeader("X-User-Id") Long userId,
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateBudgetRequest request) {
+
+        BudgetResponse updatedBudget = budgetService.updateBudget(id, userId, request);
+        return ResponseEntity.ok(updatedBudget);
     }
 }

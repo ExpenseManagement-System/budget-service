@@ -4,6 +4,7 @@ import com.ems.budget_service.exception.BudgetAlreadyExistsException;
 import com.ems.budget_service.exception.ResourceNotFoundException;
 import com.ems.budget_service.model.dto.BudgetResponse;
 import com.ems.budget_service.model.dto.CreateBudgetRequest;
+import com.ems.budget_service.model.dto.UpdateBudgetRequest;
 import com.ems.budget_service.model.entity.Budget;
 import com.ems.budget_service.repository.BudgetRepository;
 import lombok.RequiredArgsConstructor;
@@ -80,5 +81,19 @@ public class BudgetService {
                 ));
 
         return mapToResponse(budget);
+    }
+
+    @Transactional
+    public BudgetResponse updateBudget(Long id, Long userId, UpdateBudgetRequest request) {
+        Budget budget = budgetRepository.findByIdAndUserId(id, userId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        String.format("Budget with id %d not found for user %d", id, userId)
+                ));
+
+        budget.setMonthlyLimit(request.monthlyLimit());
+
+        // Saving updated entity; @UpdateTimestamp automatically updates updated_at field
+        Budget updatedBudget = budgetRepository.save(budget);
+        return mapToResponse(updatedBudget);
     }
 }
