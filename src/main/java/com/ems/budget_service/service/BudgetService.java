@@ -1,6 +1,7 @@
 package com.ems.budget_service.service;
 
 import com.ems.budget_service.exception.BudgetAlreadyExistsException;
+import com.ems.budget_service.exception.ResourceNotFoundException;
 import com.ems.budget_service.model.dto.BudgetResponse;
 import com.ems.budget_service.model.dto.CreateBudgetRequest;
 import com.ems.budget_service.model.entity.Budget;
@@ -8,6 +9,8 @@ import com.ems.budget_service.repository.BudgetRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -41,6 +44,21 @@ public class BudgetService {
         return mapToResponse(savedBudget);
     }
 
+    @Transactional(readOnly = true)
+    public List<BudgetResponse> getBudgets(Long userId, Integer month, Integer year) {
+        List<Budget> budgets;
+
+        if (month != null && year != null) {
+            budgets = budgetRepository.findByUserIdAndMonthAndYear(userId, month, year);
+        } else {
+            budgets = budgetRepository.findByUserId(userId);
+        }
+
+        return budgets.stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
+
     private BudgetResponse mapToResponse(Budget budget) {
         return new BudgetResponse(
                 budget.getId(),
@@ -52,5 +70,15 @@ public class BudgetService {
                 budget.getCreatedAt(),
                 budget.getUpdatedAt()
         );
+    }
+
+    @Transactional(readOnly = true)
+    public BudgetResponse getBudgetById(Long id, Long userId) {
+        Budget budget = budgetRepository.findByIdAndUserId(id, userId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        String.format("Budget with id %d not found for user %d", id, userId)
+                ));
+
+        return mapToResponse(budget);
     }
 }
